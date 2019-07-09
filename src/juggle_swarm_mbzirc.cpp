@@ -33,71 +33,6 @@ void curr_coords_cb2(const geometry_msgs::PoseStamped::ConstPtr& msg) {
     current_coordinates[2].pose.position.y += uav_initial_pos[2][1];
 }
 
-void seq_v2(char sequence[],vector < vector<float> > &ix,vector < vector<float> > &iy,vector < vector<float> > &iz,float brick_pos[],float brick_specs[], int siz, float uav_initial_pos[][3])
-{
-    int m=0,n=0,o=0;
-    int i=0;
-    float brick_initial_posx = brick_pos[0];
-    float brick_initial_posy = brick_pos[1];
-    float brick_length = brick_specs[0];
-    float brick_width = brick_specs[0];
-    int height1=5, height2 = 5, height3=5;
-    float x,y,z;
-    for(int l=0;l<siz;l++)
-    {
-        if(sequence[l]=='R')
-        {
-            i = 0;
-            x=16;
-            y=-4;
-            z=height1;
-        }
-        else if(sequence[l]=='G')
-        {
-            i = 1;
-            x=16;
-            y=-16;
-            z=height2;
-        }
-        else if(sequence[l]=='B')
-        {
-            i = 2;
-            x=16;
-            y=-10;
-            z=height3;
-        }
-        ix[i].push_back(x);
-        ix[i].push_back(x);
-        ix[i].push_back(brick_initial_posx);
-        ix[i].push_back(brick_initial_posx);
-        ix[i].push_back(uav_initial_pos[i][0]);
-
-        iy[i].push_back(y);
-        iy[i].push_back(y);
-        iy[i].push_back(brick_initial_posy);
-        iy[i].push_back(brick_initial_posy);
-        iy[i].push_back(uav_initial_pos[i][1]);
-
-        iz[i].push_back(z);
-        iz[i].push_back(0.5);
-        iz[i].push_back(5);
-        iz[i].push_back(0.5);
-        iz[i].push_back(uav_initial_pos[i][2]);
-
-        // i+=1;
-
-        // if(i>=3)
-        // {
-        //     i=0;
-        // }
-        brick_initial_posy=brick_length+brick_initial_posy;
-        if(brick_initial_posy>13)
-        {
-            brick_initial_posy=13;
-            brick_initial_posx=brick_initial_posx+brick_width;
-        }
-    }
-}
 
 
 float distance_between_cartesian_points(geometry_msgs::PoseStamped point1, geometry_msgs::PoseStamped point2) {
@@ -165,13 +100,6 @@ int main(int argc, char **argv)
         topic_name << "/updated_coordinates" << k;
         wp_for_node[i] = nh.advertise<geometry_msgs::PoseStamped>(topic_name.str(), 10);
     }
-    // ros::Publisher wp_for_node1 = nh.advertise<geometry_msgs::PoseStamped>("/updated_coordinates1", 10);
-    // ros::Publisher wp_for_node2 = nh.advertise<geometry_msgs::PoseStamped>("/updated_coordinates2", 10);
-    // ros::Publisher wp_for_node3 = nh.advertise<geometry_msgs::PoseStamped>("/updated_coordinates3", 10);
-
-
-    // std_srvs::Empty srv;
-  // gripper_on.call(srv);
 
 
     ros::Rate loop_rate(100);
@@ -180,10 +108,7 @@ int main(int argc, char **argv)
 
     float brick_length=1,brick_width=1;
     float brick_initial_posx= -15, brick_initial_posy= 9;
-    int ptx=0;
     int siz=7;
-    int fgg=1;
-    int uav1_waypoint=0,uav2_waypoint=0,uav3_waypoint=0;
     int i=0, j=0, k=0;
     char sequence[siz]={'R','G','R','B','G','R','B'};
     char sequence1[siz] = {0, 1, 0, 2, 1, 0, 2};
