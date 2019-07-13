@@ -57,7 +57,7 @@ geometry_msgs::PoseStamped get_quarternions(geometry_msgs::PoseStamped point1, g
 
 int brick_picked_up(int id, geometry_msgs::PoseStamped target) {
     float distance = distance_between_cartesian_points(current_coordinates[id], target);
-    if (distance < 0.5) {
+    if (distance < 0.2) {
         return 1;
     }
     return 0;
@@ -65,7 +65,7 @@ int brick_picked_up(int id, geometry_msgs::PoseStamped target) {
 
 int brick_placed(int id, geometry_msgs::PoseStamped target) {
     float distance = distance_between_cartesian_points(current_coordinates[id], target);
-    if (distance < 0.5) {
+    if (distance < 0.2) {
         return 1;
     }
     return 0;
@@ -77,11 +77,11 @@ int current_idle_drone = 1;
 
 int main(int argc, char **argv)
 { 
-  ros::init(argc, argv, "ch2_complete_new");
+  ros::init(argc, argv, "juggle_mbzirc");
     ros::NodeHandle nh;
 
-    ros::Subscriber crnt_cords_s0 = nh.subscribe<geometry_msgs::PoseStamped>("uav3/mavros/local_position/pose", 10, curr_coords_cb0);
-    ros::Publisher local_pos_pub0 = nh.advertise<geometry_msgs::PoseStamped>("uav3/mavros/setpoint_position/local", 10);
+    ros::Subscriber crnt_cords_s0 = nh.subscribe<geometry_msgs::PoseStamped>("uav0/mavros/local_position/pose", 10, curr_coords_cb0);
+    ros::Publisher local_pos_pub0 = nh.advertise<geometry_msgs::PoseStamped>("uav0/mavros/setpoint_position/local", 10);
     ros::Subscriber crnt_cords_s1 = nh.subscribe<geometry_msgs::PoseStamped>("uav1/mavros/local_position/pose", 10, curr_coords_cb1);
     ros::Publisher local_pos_pub1 = nh.advertise<geometry_msgs::PoseStamped>("uav1/mavros/setpoint_position/local", 10);
     ros::Subscriber crnt_cords_s2 = nh.subscribe<geometry_msgs::PoseStamped>("uav2/mavros/local_position/pose", 10, curr_coords_cb2);
@@ -90,14 +90,14 @@ int main(int argc, char **argv)
     array<ros::Publisher, 3> wp_for_node;
     for (size_t i = 0; i < wp_for_node.size(); i++) {
         stringstream topic_name;
-        size_t k;
-        if (i == 0) {
-            k = 3;
-        }
-        else {
-            k = i;
-        }
-        topic_name << "/updated_coordinates" << k;
+        // size_t k;
+        // if (i == 0) {
+        //     k = 3;
+        // }
+        // else {
+        //     k = i;
+        // }
+        topic_name << "/updated_coordinates" << i;
         wp_for_node[i] = nh.advertise<geometry_msgs::PoseStamped>(topic_name.str(), 10);
     }
 
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     char sequence[siz]={'R','G','R','B','G','R','B'};
     char sequence1[siz] = {0, 1, 0, 2, 1, 0, 2};
 
-    geometry_msgs::PoseStamped hand1, hand2;
+    geometry_msgs::PoseStamped hand1, hand2, after_pick_zone;
 
     geometry_msgs::PoseStamped drone_single_waypoints[3];
 
@@ -142,10 +142,12 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         brick_pickup_flag = 0;
-        cout << "current dropper: " << current_dropping_drone << endl;
-        cout << "current_pickup: " << current_picking_drone << endl;
-        cout << "current idle: " << current_idle_drone << endl;
-        cout << ready_to_drop << ready_to_pick << ready_to_idle << endl;
+        // cout << "current dropper: " << current_dropping_drone << endl;
+        // cout << "current_pickup: " << current_picking_drone << endl;
+        // cout << "current idle: " << current_idle_drone << endl;
+        // cout << ready_to_drop << ready_to_pick << ready_to_idle << endl;
+        cout << "Pickup no: " << pickup_no << endl;
+        cout << "Drop no: " << drop_no << endl;
         hand1.pose.position.x = pickup_zones[sequence1[pickup_no]][0];
         hand1.pose.position.y = pickup_zones[sequence1[pickup_no]][1];
         hand1.pose.position.z = 5;
@@ -156,27 +158,35 @@ int main(int argc, char **argv)
 
         if (hand2.pose.position.y >= 13) {
             hand2.pose.position.y = 13;
-            hand2.pose.position.x = brick_initial_posx + (drop_no - 5) * brick_width;
+            hand2.pose.position.x = brick_initial_posx + (drop_no - 4) * brick_width;
         }
+
+        after_pick_zone.pose.position.x = 5;
+        after_pick_zone.pose.position.y = 5;
+        after_pick_zone.pose.position.z = 5;
 
         // cout << "initial referencing." << endl;
 
+
         if (current_picking_drone != -1) {
+            if(abs(current_coordinates[current_picking_drone].pose.position.x - hand1.pose.position.x) < 0.5 &&
+                abs(current_coordinates[current_picking_drone].pose.position.y - hand1.pose.position.y) < 0.5) {
+                hand1.pose.position.z = 0.5;
+                cout << "fake picking!!";
+            }
+            
             if (brick_picked_up(current_picking_drone, hand1)) {
                 brick_pickup_flag = 1;
+                wp_for_node[current_picking_drone].publish(after_pick_zone);
                 ready_to_drop = current_picking_drone;
                 current_picking_drone = -1;
                 pickup_no = (pickup_no + 1) % 7;
+                hand1.pose.position.z = 5;
             } else {
                 drone_single_waypoints[current_picking_drone].pose.position.x = hand1.pose.position.x;
                 drone_single_waypoints[current_picking_drone].pose.position.y = hand1.pose.position.y;
                 drone_single_waypoints[current_picking_drone].pose.position.z = hand1.pose.position.z;
 
-                if(current_coordinates[current_picking_drone].pose.position.x == hand1.pose.position.x &&
-                    current_coordinates[current_picking_drone].pose.position.y == hand1.pose.position.y) {
-                    drone_single_waypoints[current_picking_drone].pose.position.z = 0.5;
-                    cout << "fake picking!!";
-                }
                 wp_for_node[current_picking_drone].publish(drone_single_waypoints[current_picking_drone]);
             }
         } else {
@@ -189,6 +199,11 @@ int main(int argc, char **argv)
         // cout << "picking part!!" << endl;
 
         if (current_dropping_drone != -1) {
+            if(abs(current_coordinates[current_dropping_drone].pose.position.x - hand2.pose.position.x) < 0.5 &&
+                abs(current_coordinates[current_dropping_drone].pose.position.y - hand2.pose.position.y) < 0.5) {
+                hand2.pose.position.z = 0.5;
+                cout << "fake dropping!!";
+            }
             if (brick_placed(current_dropping_drone, hand2)) {
                 ready_to_idle = current_dropping_drone;
                 current_dropping_drone = -1;
@@ -198,11 +213,6 @@ int main(int argc, char **argv)
                 drone_single_waypoints[current_dropping_drone].pose.position.y = hand2.pose.position.y;
                 drone_single_waypoints[current_dropping_drone].pose.position.z = hand2.pose.position.z;
 
-                if(current_coordinates[current_dropping_drone].pose.position.x == hand2.pose.position.x &&
-                    current_coordinates[current_dropping_drone].pose.position.y == hand2.pose.position.y) {
-                    drone_single_waypoints[current_dropping_drone].pose.position.z = 0.5;
-                    cout << "fake dropping!!";
-                }
                 wp_for_node[current_dropping_drone].publish(drone_single_waypoints[current_dropping_drone]);
             }
         } else {
@@ -215,14 +225,13 @@ int main(int argc, char **argv)
         // cout << "dropping part" << endl;
 
         if (current_idle_drone != -1) {
-            ready_to_pick = current_idle_drone;
             if (brick_pickup_flag) {
                 ready_to_pick = current_idle_drone;
                 current_idle_drone = -1;
             } else {
-                drone_single_waypoints[current_idle_drone].pose.position.x = 0;
-                drone_single_waypoints[current_idle_drone].pose.position.y = 0;
-                drone_single_waypoints[current_idle_drone].pose.position.z = 2;
+                drone_single_waypoints[current_idle_drone].pose.position.x = -10;
+                drone_single_waypoints[current_idle_drone].pose.position.y = -10;
+                drone_single_waypoints[current_idle_drone].pose.position.z = 5;
                 wp_for_node[current_idle_drone].publish(drone_single_waypoints[current_idle_drone]);
             }
         } else {
