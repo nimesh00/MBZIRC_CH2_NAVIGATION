@@ -125,6 +125,10 @@ include_directories(
 #   src/${PROJECT_NAME}/mbzirc.cpp
 # )
 
+add_library(${PROJECT_NAME}
+  include/mbzirc/src/UAV.cpp
+)
+
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -138,6 +142,7 @@ add_executable(test1 src/ch2_with_gripper_perfect_full.cpp)
 add_executable(mbzirc_nav src/mbzirc_ch2_navigation.cpp)
 add_executable(mbzirc_ch2_wp_pub src/mbzirc_ch2_wp_publisher.cpp)
 add_executable(juggle_mbzirc src/juggle_swarm_mbzirc.cpp)
+add_executable(uav_class_test src/uav_class_test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -163,6 +168,9 @@ target_link_libraries(mbzirc_nav
   ${catkin_LIBRARIES}
 )
 target_link_libraries(juggle_mbzirc
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(uav_class_test
   ${catkin_LIBRARIES}
 )
 #############
