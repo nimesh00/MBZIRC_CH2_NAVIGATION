@@ -11,11 +11,15 @@
 #include "UAV.h"
 #include "UAV.cpp"
 
-#define no_of_uavs 1
+#define no_of_uavs 3
 
 int main(int argc, char* argv[]) {
 
+    // For mbzirc_nav.sh
     // float uav_initial_pos[3][3]={{0,0,0},{1,0,0},{-1,0,0}};
+
+    //For multi_uav.sh
+    float uav_initial_pos[3][3]={{0,5,0},{5,-5,0},{-5,-5,0}};
 
     ros::init(argc, argv, "uav_class_test");
     ros::NodeHandle nh;
@@ -28,8 +32,8 @@ int main(int argc, char* argv[]) {
     // uav = new UAV* [no_of_uavs];
 
     for (int i = 0; i < no_of_uavs; i++) {
-        // uav[i].INIT_UAV(i, uav_initial_pos[i][0], uav_initial_pos[i][1], uav_initial_pos[i][2], nh);
-        uav[i].INIT_UAV(i, -10, -10, 0, nh);
+        uav[i].INIT_UAV(i, uav_initial_pos[i][0], uav_initial_pos[i][1], uav_initial_pos[i][2], nh);
+        // uav[i].INIT_UAV(i, -10, -10, 0, nh);
     }
 
     cout << "UAVs initialized successfully!!" << endl;

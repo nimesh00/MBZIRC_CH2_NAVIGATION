@@ -14,7 +14,7 @@
 
 using namespace std;
 
-float uav_initial_pos[3][3]={{0,0,2},{1,0,2},{-1,0,2}};
+float uav_initial_pos[3][3]={{0,0,0},{1,0,0},{-1,0,0}};
 
 geometry_msgs::PoseStamped current_coordinates[3];
 void curr_coords_cb0(const geometry_msgs::PoseStamped::ConstPtr& msg) {
@@ -90,13 +90,6 @@ int main(int argc, char **argv)
     array<ros::Publisher, 3> wp_for_node;
     for (size_t i = 0; i < wp_for_node.size(); i++) {
         stringstream topic_name;
-        // size_t k;
-        // if (i == 0) {
-        //     k = 3;
-        // }
-        // else {
-        //     k = i;
-        // }
         topic_name << "/updated_coordinates" << i;
         wp_for_node[i] = nh.advertise<geometry_msgs::PoseStamped>(topic_name.str(), 10);
     }
