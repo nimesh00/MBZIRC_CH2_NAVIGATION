@@ -145,6 +145,8 @@ add_executable(juggle_mbzirc src/juggle_swarm_mbzirc.cpp)
 add_executable(uav_class_test src/uav_class_test.cpp)
 add_executable(collision_control src/collision_control.cpp)
 add_executable(collision_test_waypoints src/collision_test_waypoints.cpp)
+add_executable(initial_survey src/initial_survey.cpp)
+add_executable(MBZIRC_CH2 src/MBZIRC_CH2.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -179,6 +181,12 @@ target_link_libraries(collision_control
   ${catkin_LIBRARIES}
 )
 target_link_libraries(collision_test_waypoints
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(initial_survey
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(MBZIRC_CH2
   ${catkin_LIBRARIES}
 )
 #############
