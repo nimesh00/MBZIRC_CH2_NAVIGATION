@@ -14,8 +14,8 @@ using namespace std;
 
 #define no_of_uav 3
 
-float uav_initial_pos[3][3]={{0,5,0},{5,-5,0},{-5,-5,0}};
-// float uav_initial_pos[3][3]={{0,0,0},{1,0,0},{-1,0,0}};
+// float uav_initial_pos[3][3]={{0,5,0},{5,-5,0},{-5,-5,0}};
+float uav_initial_pos[3][3]={{0,0,0},{1,0,0},{-1,0,0}};
 
 geometry_msgs::Point C[no_of_uav], T[no_of_uav], velocity[no_of_uav];
 void curr_coords_cb(const geometry_msgs::PoseStamped::ConstPtr& msg, int id) {
@@ -108,12 +108,12 @@ int main(int argc, char* argv[]) {
                     } else {
                         float v1 = sqrt(pow(velocity[i].x, 2) + pow(velocity[i].y, 2));
                         float v2 = sqrt(pow(velocity[j].x, 2) + pow(velocity[j].y, 2));
-                        // float td = 0.5 / (OC1 >= OC2) ? v2 : v1;
+                        // float td = 1.0 / (OC1 >= OC2) ? v2 : v1;
                         float td = 2.0;
                         float delay_time = 5.0;
                         float safety_factor = 5.0;
-                        // if (abs(((float)OC1 / v1) - ((float)OC2 / v2)) < td) {
-                        if (abs(OC1 - OC2) < td) {
+                        if (abs(((float)OC1 / v1) - ((float)OC2 / v2)) < td) {
+                        // if (abs(OC1 - OC2) < td) {
                             cout << "Possible Collistion of " << i << " with " << j << endl;
                             if (OC1 >= OC2) {
                                 // vel_correction_factor[i] = (float)(v1 * OC2) / (v2 * (OC1 - 1));

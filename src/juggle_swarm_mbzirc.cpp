@@ -1,5 +1,3 @@
-//C++ program for visual servoing Method 2
-//Abhishek Kashyap, Narayani, Rahul
 #include "ros/ros.h"
 #include <geometry_msgs/PoseStamped.h>
 #include <mavros_msgs/PositionTarget.h>
