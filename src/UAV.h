@@ -32,6 +32,7 @@ class UAV {
         // mavros_msgs::CommandBool arm_cmd;
         float x_initial, y_initial, z_initial;
         float velocity_x, velocity_y, velocity_z;
+        float velocity_correction_factor;
         
         geometry_msgs::Point current_coordinates, target_coordinates, last_coordinates;
         mavros_msgs::State current_state;
@@ -47,6 +48,7 @@ class UAV {
         ros::Subscriber updated_coords_sub;
         ros::Subscriber state_sub;
         ros::Subscriber compass_sub;
+        ros::Subscriber velocity_correction_factor_sub;
         ros::Publisher  velocity_control_commands;
         ros::Publisher  position_control_commands;
         ros::ServiceClient arming_client;
@@ -58,6 +60,7 @@ class UAV {
     void state_cb(const mavros_msgs::State::ConstPtr&);
     void curr_coords_cb(const geometry_msgs::PoseStamped::ConstPtr&);
     void compass_cb(const std_msgs::Float64::ConstPtr&);
+    void velocity_correction_factor_cb(const std_msgs::Float64::ConstPtr&);
 
     // UAV control function declarations
     void publish_velocities(float, float, float, float);

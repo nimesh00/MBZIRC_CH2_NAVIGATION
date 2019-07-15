@@ -69,6 +69,10 @@ void UAV::compass_cb(const std_msgs::Float64::ConstPtr& msg) {
     compass_current = (float)compass_current_reading.data;
 }
 
+void UAV::velocity_correction_factor_cb(const std_msgs::Float64::ConstPtr& msg) {
+    velocity_correction_factor = msg->data;
+}
+
 void UAV::INIT_UAV(int id, float x_init, float y_init, float z_init, ros::NodeHandle nh) {
     // NO_OF_UAV++;
     ID = id;
@@ -77,18 +81,20 @@ void UAV::INIT_UAV(int id, float x_init, float y_init, float z_init, ros::NodeHa
     z_initial = z_init;
     target_coordinates.z = 2.0;
     got_new_coordinates = 0;
+    velocity_correction_factor = 1.0;
     MAX_VELOCITY = 10.0;
     SOFTEN_PROFILE = 1.2;
-    compass_initial = 0.0;
-    compass_current = 0.0;
-    // stringstream uav_id;
-    // uav_id << "/uav" << id;
+    compass_initial = -90.0;
+    // this value is hardcoded right now because this variable is not getting updated before we pass it to compass intial.
+    // In simulation only it's going to work fine. In real world orientation will be skewed.
+    compass_current = -90.0;
 
     // topics for the diffrent publishers and subscribers
     string current_coords_sub_topic = "/uav" + to_string(ID) + "/mavros/local_position/pose";
     string target_coords_sub_topic = "/updated_coordinates" + to_string(ID);
     string state_sub_topic = "/uav" + to_string(ID) + "/mavros/state";
     string compass_sub_topic = "/uav" + to_string(ID) + "/mavros/global_position/compass_hdg";
+    string velocity_correction_factor_sub_topic = "/uav" + to_string(ID) + "/vel_correction_factor1";
     string velocity_control_commands_pub_topic = "/uav" + to_string(ID) + "/mavros/setpoint_raw/local";
     string position_control_commands_pub_topic = "uav" + to_string(ID) + "/mavros/setpoint_position/local";
     string armin_client_topic = "/uav" + to_string(ID) + "/mavros/cmd/arming";
@@ -99,6 +105,7 @@ void UAV::INIT_UAV(int id, float x_init, float y_init, float z_init, ros::NodeHa
     updated_coords_sub = nh.subscribe<geometry_msgs::PoseStamped>(target_coords_sub_topic, 10, &UAV::new_coords_cb, this);
     state_sub          = nh.subscribe<mavros_msgs::State>(state_sub_topic, 10, &UAV::state_cb, this);
     compass_sub        = nh.subscribe<std_msgs::Float64>(compass_sub_topic, 10, &UAV::compass_cb, this);
+    velocity_correction_factor_sub = nh.subscribe<std_msgs::Float64>(velocity_correction_factor_sub_topic, 10, &UAV::velocity_correction_factor_cb, this);
     velocity_control_commands = nh.advertise<mavros_msgs::PositionTarget>(velocity_control_commands_pub_topic, 10);
     position_control_commands = nh.advertise<geometry_msgs::PoseStamped>(position_control_commands_pub_topic, 10);
     arming_client      = nh.serviceClient<mavros_msgs::CommandBool>(armin_client_topic);
@@ -126,8 +133,8 @@ void UAV::INIT_UAV(int id, float x_init, float y_init, float z_init, ros::NodeHa
 
 void UAV::publish_velocities(float velocity_x, float velocity_y, float velocity_z, float yaw_rate) {
     velocity_control_data.header.stamp = ros::Time::now();
-    velocity_control_data.velocity.x = velocity_x;
-    velocity_control_data.velocity.y = velocity_y;
+    velocity_control_data.velocity.x = velocity_x / velocity_correction_factor;
+    velocity_control_data.velocity.y = velocity_y / velocity_correction_factor;
     velocity_control_data.velocity.z = velocity_z;
     velocity_control_data.yaw_rate = yaw_rate;
     velocity_control_commands.publish(velocity_control_data);
